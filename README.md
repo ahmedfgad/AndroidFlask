@@ -1,6 +1,6 @@
 # AndroidFlask
 
-## File Upload from Android to a Python-Based Flask Server
+## Image Upload from Android to a Python-Based Flask Server
 The repository consists of 2 main folders:
 1. **AndroidClient**: Represents the Android Studio project which builds an Android app working as a client.
 2. **FlaskServer**: The Python-Based server using Flask.
