@@ -1,4 +1,4 @@
-package com.example.dell.androidflask;
+package fritz.example.dell.androidflask;
 
 import org.junit.Test;
 

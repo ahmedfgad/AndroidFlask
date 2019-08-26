@@ -1,5 +1,6 @@
-package com.example.dell.androidflask;
+package fritz.heartbeat.androidflask.imageupload;
 
+import android.content.ClipData;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
@@ -13,13 +14,20 @@ import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import fritz.heartbeat.androidflask.imageupload.R;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
@@ -30,7 +38,15 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
-    String selectedImagePath;
+    private static final Pattern IP_ADDRESS
+            = Pattern.compile(
+            "((25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}|[1-9][0-9]|[1-9])\\.(25[0-5]|2[0-4]"
+                    + "[0-9]|[0-1][0-9]{2}|[1-9][0-9]|[1-9]|0)\\.(25[0-5]|2[0-4][0-9]|[0-1]"
+                    + "[0-9]{2}|[1-9][0-9]|[1-9]|0)\\.(25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}"
+                    + "|[1-9][0-9]|[0-9]))");
+    final int SELECT_MULTIPLE_IMAGES = 1;
+    ArrayList<String> selectedImagesPaths; // Paths of the image(s) selected by the user.
+    boolean imagesSelected = false; // Whether the user selected at least an image or not.
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,30 +54,53 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
     }
 
-    void connectServer(View v){
+    public void connectServer(View v) {
+        TextView responseText = findViewById(R.id.responseText);
+        if (imagesSelected == false) { // This means no image is selected and thus nothing to upload.
+            responseText.setText("No Image Selected to Upload. Select Image(s) and Try Again.");
+            return;
+        }
+        responseText.setText("Sending the Files. Please Wait ...");
+
         EditText ipv4AddressView = findViewById(R.id.IPAddress);
         String ipv4Address = ipv4AddressView.getText().toString();
         EditText portNumberView = findViewById(R.id.portNumber);
         String portNumber = portNumberView.getText().toString();
 
-        String postUrl= "http://"+ipv4Address+":"+portNumber+"/";
+        Matcher matcher = IP_ADDRESS.matcher(ipv4Address);
+        if (!matcher.matches()) {
+            responseText.setText("Invalid IPv4 Address. Please Check Your Inputs.");
+            return;
+        }
 
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inPreferredConfig = Bitmap.Config.RGB_565;
-        // Read BitMap by file path
-        Bitmap bitmap = BitmapFactory.decodeFile(selectedImagePath, options);
+        String postUrl = "http://" + ipv4Address + ":" + portNumber + "/";
 
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-        byte[] byteArray = stream.toByteArray();
+        MultipartBody.Builder multipartBodyBuilder = new MultipartBody.Builder().setType(MultipartBody.FORM);
 
-        RequestBody postBodyImage = new MultipartBody.Builder()
-                .setType(MultipartBody.FORM)
-                .addFormDataPart("image", "androidFlask.jpg", RequestBody.create(MediaType.parse("image/*jpg"), byteArray))
-                .build();
+        for (int i = 0; i < selectedImagesPaths.size(); i++) {
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inPreferredConfig = Bitmap.Config.RGB_565;
 
-        TextView responseText = findViewById(R.id.responseText);
-        responseText.setText("Please wait ...");
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            try {
+                // Read BitMap by file path.
+                Bitmap bitmap = BitmapFactory.decodeFile(selectedImagesPaths.get(i), options);
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+            }catch(Exception e){
+                responseText.setText("Please Make Sure the Selected File is an Image.");
+                return;
+            }
+            byte[] byteArray = stream.toByteArray();
+
+            multipartBodyBuilder.addFormDataPart("image" + i, "Android_Flask_" + i + ".jpg", RequestBody.create(MediaType.parse("image/*jpg"), byteArray));
+        }
+
+        RequestBody postBodyImage = multipartBodyBuilder.build();
+
+//        RequestBody postBodyImage = new MultipartBody.Builder()
+//                .setType(MultipartBody.FORM)
+//                .addFormDataPart("image", "androidFlask.jpg", RequestBody.create(MediaType.parse("image/*jpg"), byteArray))
+//                .build();
 
         postRequest(postUrl, postBodyImage);
     }
@@ -86,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         TextView responseText = findViewById(R.id.responseText);
-                        responseText.setText("Failed to Connect to Server");
+                        responseText.setText("Failed to Connect to Server. Please Try Again.");
                     }
                 });
             }
@@ -99,12 +138,12 @@ public class MainActivity extends AppCompatActivity {
                     public void run() {
                         TextView responseText = findViewById(R.id.responseText);
                         try {
-                            responseText.setText(response.body().string());
+                            responseText.setText("Server's Response\n" + response.body().string());
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                     }
-                 });
+                });
             }
         });
     }
@@ -112,20 +151,56 @@ public class MainActivity extends AppCompatActivity {
     public void selectImage(View v) {
         Intent intent = new Intent();
         intent.setType("*/*");
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(intent, 0);
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), SELECT_MULTIPLE_IMAGES);
     }
 
     @Override
-    protected void onActivityResult(int reqCode, int resCode, Intent data) {
-        if(resCode == RESULT_OK && data != null) {
-            Uri uri = data.getData();
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        try {
+            if (requestCode == SELECT_MULTIPLE_IMAGES && resultCode == RESULT_OK && null != data) {
+                // When a single image is selected.
+                String currentImagePath;
+                selectedImagesPaths = new ArrayList<>();
+                TextView numSelectedImages = findViewById(R.id.numSelectedImages);
+                if (data.getData() != null) {
+                    Uri uri = data.getData();
+                    currentImagePath = getPath(getApplicationContext(), uri);
+                    Log.d("ImageDetails", "Single Image URI : " + uri);
+                    Log.d("ImageDetails", "Single Image Path : " + currentImagePath);
+                    selectedImagesPaths.add(currentImagePath);
+                    imagesSelected = true;
+                    numSelectedImages.setText("Number of Selected Images : " + selectedImagesPaths.size());
+                } else {
+                    // When multiple images are selected.
+                    // Thanks tp Laith Mihyar for this Stackoverflow answer : https://stackoverflow.com/a/34047251/5426539
+                    if (data.getClipData() != null) {
+                        ClipData clipData = data.getClipData();
+                        for (int i = 0; i < clipData.getItemCount(); i++) {
 
-            selectedImagePath = getPath(getApplicationContext(), uri);
-            EditText imgPath = findViewById(R.id.imgPath);
-            imgPath.setText(selectedImagePath);
-            Toast.makeText(getApplicationContext(), selectedImagePath, Toast.LENGTH_LONG).show();
+                            ClipData.Item item = clipData.getItemAt(i);
+                            Uri uri = item.getUri();
+
+                            currentImagePath = getPath(getApplicationContext(), uri);
+                            selectedImagesPaths.add(currentImagePath);
+                            Log.d("ImageDetails", "Image URI " + i + " = " + uri);
+                            Log.d("ImageDetails", "Image Path " + i + " = " + currentImagePath);
+                            imagesSelected = true;
+                            numSelectedImages.setText("Number of Selected Images : " + selectedImagesPaths.size());
+                        }
+                    }
+                }
+            } else {
+                Toast.makeText(this, "You haven't Picked any Image.", Toast.LENGTH_LONG).show();
+            }
+            Toast.makeText(getApplicationContext(), selectedImagesPaths.size() + " Image(s) Selected.", Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Toast.makeText(this, "Something Went Wrong.", Toast.LENGTH_LONG).show();
+            e.printStackTrace();
         }
+
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     // Implementation of the getPath() method and all its requirements is taken from the StackOverflow Paul Burke's answer: https://stackoverflow.com/a/20559175/5426539
@@ -172,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 final String selection = "_id=?";
-                final String[] selectionArgs = new String[] {
+                final String[] selectionArgs = new String[]{
                         split[1]
                 };
 
@@ -226,4 +301,3 @@ public class MainActivity extends AppCompatActivity {
         return "com.android.providers.media.documents".equals(uri.getAuthority());
     }
 }
-

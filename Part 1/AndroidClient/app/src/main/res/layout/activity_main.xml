@@ -4,17 +4,27 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/imgPath"
-        android:hint="Image Path Appears Here"/>
+<!--    <EditText-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:id="@+id/imgPath"-->
+<!--        android:hint="Image Path Appears Here"/>-->
 
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Select Image"
-        android:onClick="selectImage"/>
+        android:text="Select Image(s)"
+        android:onClick="selectImage"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No Image Selected."
+        android:id="@+id/numSelectedImages"
+        android:textAlignment="center"
+        android:textStyle="bold"
+        android:textColor="#988734"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -24,13 +34,17 @@
             android:layout_weight="1"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:text="IPv4 Address" />
+            android:text="IPv4 Address"
+            android:textStyle="bold"
+            android:textColor="#988734" />
         <EditText
             android:layout_weight="4"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:id="@+id/IPAddress"
-            android:text="192.168.1.8" />
+            android:text="192.168.43.177"
+            android:singleLine="true"
+            android:textStyle="bold"/>
     </LinearLayout>
 
     <LinearLayout
@@ -41,25 +55,45 @@
             android:layout_weight="1"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:text="Port Number" />
+            android:text="Port Number"
+            android:textStyle="bold"
+            android:textColor="#988734"/>
         <EditText
             android:layout_weight="4"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:id="@+id/portNumber"
-            android:text="5000"/>
+            android:text="5000"
+            android:inputType="number"
+            android:singleLine="true"
+            android:textStyle="bold"/>
     </LinearLayout>
 
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Connect to Server"
-        android:onClick="connectServer"/>
+        android:text="Connect to Server &amp; Upload"
+        android:onClick="connectServer"
+        android:textStyle="bold"/>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Message from the Server ..."
-        android:id="@+id/responseText" />
+        android:text="Connection Status."
+        android:id="@+id/responseText"
+        android:textAlignment="center"
+        android:textColor="#FF0000"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="\n\nAbout Us\nRights reserved by HeartBeat publication by Fritz Labs Inc (https://heartbeat.fritz.ai).\n\n
+The GitHub project is available here:\nhttps://github.com/ahmedfgad/AndroidFlask\n\n
+The project is documented in a tutorial at HeartBeat:\nhttps://heartbeat.fritz.ai/uploading-images-from-android-to-a-python-based-flask-server-691e4092a95e"
+        android:autoLink="web"
+        android:textAlignment="center"
+        android:textColor="#988734"
+        android:textStyle="bold"/>
 
 </LinearLayout>

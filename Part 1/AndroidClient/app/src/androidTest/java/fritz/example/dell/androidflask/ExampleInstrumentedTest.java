@@ -1,4 +1,4 @@
-package com.example.dell.androidflask;
+package fritz.example.dell.androidflask;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
