@@ -72,9 +72,10 @@
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Connect to Server &amp; Upload"
         android:onClick="connectServer"
-        android:textStyle="bold"/>
+        android:text="Connect to Server &amp; Upload"
+        android:textColor="#6CA22F"
+        android:textStyle="bold" />
 
     <TextView
         android:layout_width="match_parent"
@@ -88,7 +89,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="\n\nAbout Us\nRights reserved by HeartBeat publication by Fritz Labs Inc (https://heartbeat.fritz.ai).\n\n
+        android:text="\n\nAbout Us\nRights reserved by Ahmed Fawzy Gad 2019 (https://www.linkedin.com/in/ahmedfgad).\n\n
 The GitHub project is available here:\nhttps://github.com/ahmedfgad/AndroidFlask\n\n
 The project is documented in a tutorial at HeartBeat:\nhttps://heartbeat.fritz.ai/uploading-images-from-android-to-a-python-based-flask-server-691e4092a95e"
         android:autoLink="web"
