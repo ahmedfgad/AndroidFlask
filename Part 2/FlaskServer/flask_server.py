@@ -8,7 +8,7 @@ app = flask.Flask(__name__)
 
 @app.route('/', methods = ['GET', 'POST'])
 def handle_request():
-    imagefile = flask.request.files['image']
+    imagefile = flask.request.files['image0']
     filename = werkzeug.utils.secure_filename(imagefile.filename)
     print("\nReceived image File name : " + imagefile.filename)
     imagefile.save(filename)
