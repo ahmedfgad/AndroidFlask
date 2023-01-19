@@ -1,6 +1,9 @@
 # AndroidFlask
 
 ## Image Upload from Android to a Python-Based Flask Server
+
+Documentation: https://heartbeat.comet.ml/uploading-images-from-android-to-a-python-based-flask-server-691e4092a95e
+
 The repository consists of 2 main folders:
 1. **AndroidClient**: Represents the Android Studio project which builds an Android app working as a client.
 2. **FlaskServer**: The Python-Based server using Flask.
